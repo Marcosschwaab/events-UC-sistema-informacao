@@ -21,11 +21,13 @@ public class Event implements Serializable {
         this.description = description;
         this.participants = new ArrayList<>();
     }
-    public LocalDateTime getDateTime() {
-        return dateTime;
-    }
+
     public String getName() {
         return name;
+    }
+
+    public LocalDateTime getDateTime() {
+        return dateTime;
     }
 
     public boolean addParticipant(User user) {
@@ -44,16 +46,20 @@ public class Event implements Serializable {
         return participants.contains(user);
     }
 
-    public List<User> getParticipants() {
-        return participants;
+    public String getStatus() {
+        LocalDateTime now = LocalDateTime.now();
+        if (dateTime.isBefore(now.minusHours(1))) {
+            return "Already occurred";
+        } else if (dateTime.isBefore(now.plusHours(1)) && dateTime.isAfter(now.minusHours(1))) {
+            return "Happening now";
+        } else {
+            return "Upcoming";
+        }
     }
 
     @Override
     public String toString() {
-        return "\nEvent: " + name +
-               "\nAddress: " + address +
-               "\nCategory: " + category +
-               "\nDate & Time: " + dateTime +
-               "\nDescription: " + description;
+        return String.format("\n[Event] %s\n- Address: %s\n- Category: %s\n- DateTime: %s\n- Description: %s\n- Status: %s\n",
+                name, address, category, dateTime, description, getStatus());
     }
 }
