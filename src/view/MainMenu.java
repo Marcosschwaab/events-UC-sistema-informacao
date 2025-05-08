@@ -3,14 +3,17 @@ package view;
 import controller.EventController;
 import model.EventCategory;
 import model.User;
+import util.UserFileHandler;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Scanner;
 
 public class MainMenu {
     private static final Scanner scanner = new Scanner(System.in);
     private static final EventController eventController = new EventController();
+    private static List<User> users = UserFileHandler.loadUsers();
     private static User loggedUser = null;
 
     public static void main(String[] args) {
@@ -76,6 +79,8 @@ public class MainMenu {
         String city = scanner.nextLine();
 
         loggedUser = new User(name, email, city);
+        users.add(loggedUser);
+        UserFileHandler.saveUsers(users); // Save users to file
         System.out.println("User registered and logged in!");
     }
 
@@ -91,6 +96,8 @@ public class MainMenu {
             String city = scanner.nextLine();
 
             loggedUser = new User(name, email, city);
+            users.add(loggedUser);
+            UserFileHandler.saveUsers(users); // Save users to file
             System.out.println("Login successful!");
         } else {
             System.out.println("Already logged in.");
@@ -100,6 +107,11 @@ public class MainMenu {
     private static void logout() {
         loggedUser = null;
         System.out.println("You have logged out.");
+    }
+
+    private static void exit() {
+        System.out.println("Exiting... Goodbye!");
+        System.exit(0);
     }
 
     private static void createEvent() {
@@ -149,15 +161,5 @@ public class MainMenu {
         System.out.print("Enter the event name to cancel participation: ");
         String eventName = scanner.nextLine();
         eventController.cancelParticipation(loggedUser, eventName);
-    }
-
-    private static void exit() {
-        System.out.println("Exiting... Goodbye!");
-        System.exit(0);
-    }
-
-    public void start() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'start'");
     }
 }
