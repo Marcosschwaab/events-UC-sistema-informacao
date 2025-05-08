@@ -1,6 +1,8 @@
 package model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Event {
     private String name;
@@ -8,6 +10,7 @@ public class Event {
     private EventCategory category;
     private LocalDateTime dateTime;
     private String description;
+    private List<User> participants;
 
     public Event(String name, String address, EventCategory category, LocalDateTime dateTime, String description) {
         this.name = name;
@@ -15,27 +18,27 @@ public class Event {
         this.category = category;
         this.dateTime = dateTime;
         this.description = description;
+        this.participants = new ArrayList<>();
     }
 
-    // Getters and setters
-    public String getName() {
-        return name;
+    public boolean addParticipant(User user) {
+        if (!participants.contains(user)) {
+            participants.add(user);
+            return true;
+        }
+        return false;
     }
 
-    public String getAddress() {
-        return address;
+    public boolean removeParticipant(User user) {
+        return participants.remove(user);
     }
 
-    public EventCategory getCategory() {
-        return category;
+    public boolean isUserParticipating(User user) {
+        return participants.contains(user);
     }
 
-    public LocalDateTime getDateTime() {
-        return dateTime;
-    }
-
-    public String getDescription() {
-        return description;
+    public List<User> getParticipants() {
+        return participants;
     }
 
     @Override
