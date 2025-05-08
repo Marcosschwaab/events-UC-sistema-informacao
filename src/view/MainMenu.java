@@ -1,7 +1,6 @@
 package view;
 
 import controller.EventController;
-import controller.UserController;
 import model.EventCategory;
 import model.User;
 
@@ -10,73 +9,129 @@ import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class MainMenu {
-    private final Scanner scanner;
-    private final UserController userController;
-    private final EventController eventController;
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final EventController eventController = new EventController();
+    private static User loggedUser = null;
 
-    public MainMenu() {
-        scanner = new Scanner(System.in);
-        userController = new UserController();
-        eventController = new EventController();
-    }
-
-    public void start() {
+    public static void main(String[] args) {
         while (true) {
-            System.out.println("\n=== Event Manager ===");
-            System.out.println("1. Register User");
-            System.out.println("2. List Users");
-            System.out.println("3. Create Event");
-            System.out.println("4. List All Events");
-            System.out.println("5. Confirm Participation in Event");
-            System.out.println("6. Cancel Participation");
-            System.out.println("7. List User's Events");
-            System.out.println("0. Exit");
-            System.out.print("Select an option: ");
-            String option = scanner.nextLine();
+            System.out.println("\n=== Welcome to City Events System ===");
+            if (loggedUser == null) {
+                System.out.println("1. Register User");
+                System.out.println("2. Login");
+                System.out.println("0. Exit");
+                System.out.print("Choose an option: ");
+                int option = scanner.nextInt();
+                scanner.nextLine();
 
-            switch (option) {
-                case "1" -> registerUser();
-                case "2" -> userController.listUsers();
-                case "3" -> createEvent();
-                case "4" -> eventController.listAllEvents();
-                case "5" -> confirmParticipation();
-                case "6" -> cancelParticipation();
-                case "7" -> listUserParticipations();
-                case "0" -> {
-                    System.out.println("Exiting program...");
-                    return;
+                switch (option) {
+                    case 1 -> registerUser();
+                    case 2 -> loginUser();
+                    case 0 -> exit();
+                    default -> System.out.println("Invalid option.");
                 }
-                default -> System.out.println("Invalid option.");
+            } else {
+                System.out.printf("\n[Logged in as %s]\n", loggedUser.getName());
+                System.out.println("1. Create Event");
+                System.out.println("2. List All Events");
+                System.out.println("3. Confirm Participation");
+                System.out.println("4. Cancel Participation");
+                System.out.println("5. List My Events");
+                System.out.println("6. List Events by Date");
+                System.out.println("7. List Past Events");
+                System.out.println("8. List Ongoing Events");
+                System.out.println("9. List Upcoming Events");
+                System.out.println("10. Logout");
+                System.out.println("0. Exit");
+                System.out.print("Choose an option: ");
+                int option = scanner.nextInt();
+                scanner.nextLine();
+
+                switch (option) {
+                    case 1 -> createEvent();
+                    case 2 -> eventController.listAllEvents();
+                    case 3 -> confirmParticipation();
+                    case 4 -> cancelParticipation();
+                    case 5 -> eventController.listUserParticipations(loggedUser);
+                    case 6 -> eventController.listEventsOrderedByDate();
+                    case 7 -> eventController.listPastEvents();
+                    case 8 -> eventController.listOngoingEvents();
+                    case 9 -> eventController.listUpcomingEvents();
+                    case 10 -> logout();
+                    case 0 -> exit();
+                    default -> System.out.println("Invalid option.");
+                }
             }
         }
     }
 
-    private void registerUser() {
-        System.out.print("Name: ");
+    private static void registerUser() {
+        System.out.print("Enter your name: ");
         String name = scanner.nextLine();
-        System.out.print("Email: ");
+
+        System.out.print("Enter your email: ");
         String email = scanner.nextLine();
-        System.out.print("Phone: ");
-        String phone = scanner.nextLine();
-        userController.registerUser(name, email, phone);
+
+        System.out.print("Enter your city: ");
+        String city = scanner.nextLine();
+
+        loggedUser = new User(name, email, city);
+        System.out.println("User registered and logged in!");
     }
 
-    private void createEvent() {
+    private static void loginUser() {
+        if (loggedUser == null) {
+            System.out.print("Enter your name: ");
+            String name = scanner.nextLine();
+
+            System.out.print("Enter your email: ");
+            String email = scanner.nextLine();
+
+            System.out.print("Enter your city: ");
+            String city = scanner.nextLine();
+
+            loggedUser = new User(name, email, city);
+            System.out.println("Login successful!");
+        } else {
+            System.out.println("Already logged in.");
+        }
+    }
+
+    private static void logout() {
+        loggedUser = null;
+        System.out.println("You have logged out.");
+    }
+
+    private static void createEvent() {
         System.out.print("Event name: ");
         String name = scanner.nextLine();
+
         System.out.print("Address: ");
         String address = scanner.nextLine();
 
-        System.out.println("Available categories:");
+        System.out.println("Choose category:");
         for (EventCategory category : EventCategory.values()) {
             System.out.println("- " + category);
         }
-        System.out.print("Select category: ");
-        EventCategory category = EventCategory.valueOf(scanner.nextLine().toUpperCase());
+
+        EventCategory category;
+        try {
+            System.out.print("Category: ");
+            category = EventCategory.valueOf(scanner.nextLine().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid category. Event creation canceled.");
+            return;
+        }
 
         System.out.print("Date and time (yyyy-MM-dd HH:mm): ");
         String dateTimeStr = scanner.nextLine();
-        LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        LocalDateTime dateTime;
+        try {
+            dateTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        } catch (Exception e) {
+            System.out.println("Invalid date/time format. Event creation canceled.");
+            return;
+        }
 
         System.out.print("Description: ");
         String description = scanner.nextLine();
@@ -84,57 +139,20 @@ public class MainMenu {
         eventController.createEvent(name, address, category, dateTime, description);
     }
 
-    private void confirmParticipation() {
-        User user = chooseUser();
-        if (user == null) return;
-
-        System.out.print("Event name to join: ");
+    private static void confirmParticipation() {
+        System.out.print("Enter the event name to confirm participation: ");
         String eventName = scanner.nextLine();
-
-        eventController.confirmParticipation(user, eventName);
+        eventController.confirmParticipation(loggedUser, eventName);
     }
 
-    private void cancelParticipation() {
-        User user = chooseUser();
-        if (user == null) return;
-
-        System.out.print("Event name to leave: ");
+    private static void cancelParticipation() {
+        System.out.print("Enter the event name to cancel participation: ");
         String eventName = scanner.nextLine();
-
-        eventController.cancelParticipation(user, eventName);
+        eventController.cancelParticipation(loggedUser, eventName);
     }
 
-    private void listUserParticipations() {
-        User user = chooseUser();
-        if (user == null) return;
-
-        eventController.listUserParticipations(user);
-    }
-
-    private User chooseUser() {
-        var users = userController.getUsers();
-        if (users.isEmpty()) {
-            System.out.println("No users registered.");
-            return null;
-        }
-
-        System.out.println("Choose a user by index:");
-        for (int i = 0; i < users.size(); i++) {
-            System.out.println(i + " - " + users.get(i));
-        }
-
-        System.out.print("Enter user index: ");
-        try {
-            int index = Integer.parseInt(scanner.nextLine());
-            if (index >= 0 && index < users.size()) {
-                return users.get(index);
-            } else {
-                System.out.println("Invalid index.");
-            }
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid input. Please enter a number.");
-        }
-
-        return null;
+    private static void exit() {
+        System.out.println("Exiting... Goodbye!");
+        System.exit(0);
     }
 }
