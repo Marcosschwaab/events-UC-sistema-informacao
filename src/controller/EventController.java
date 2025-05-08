@@ -6,7 +6,9 @@ import model.User;
 import util.EventFileHandler;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EventController {
     private List<Event> events;
@@ -74,6 +76,21 @@ public class EventController {
         }
         if (!found) {
             System.out.println("User is not participating in any events.");
+        }
+    }
+
+    public void listEventsOrderedByDate() {
+        if (events.isEmpty()) {
+            System.out.println("No events registered.");
+            return;
+        }
+
+        List<Event> sorted = events.stream()
+                .sorted(Comparator.comparing(Event::getDateTime))
+                .collect(Collectors.toList());
+
+        for (Event event : sorted) {
+            System.out.println(event);
         }
     }
 
