@@ -3,6 +3,7 @@ package view;
 import controller.EventController;
 import controller.UserController;
 import model.EventCategory;
+import model.User;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -25,7 +26,10 @@ public class MainMenu {
             System.out.println("1. Register User");
             System.out.println("2. List Users");
             System.out.println("3. Create Event");
-            System.out.println("4. List Events");
+            System.out.println("4. List All Events");
+            System.out.println("5. Confirm Participation in Event");
+            System.out.println("6. Cancel Participation");
+            System.out.println("7. List User's Events");
             System.out.println("0. Exit");
             System.out.print("Select an option: ");
             String option = scanner.nextLine();
@@ -35,6 +39,9 @@ public class MainMenu {
                 case "2" -> userController.listUsers();
                 case "3" -> createEvent();
                 case "4" -> eventController.listAllEvents();
+                case "5" -> confirmParticipation();
+                case "6" -> cancelParticipation();
+                case "7" -> listUserParticipations();
                 case "0" -> {
                     System.out.println("Exiting program...");
                     return;
@@ -60,7 +67,7 @@ public class MainMenu {
         System.out.print("Address: ");
         String address = scanner.nextLine();
 
-        System.out.println("Category options:");
+        System.out.println("Available categories:");
         for (EventCategory category : EventCategory.values()) {
             System.out.println("- " + category);
         }
@@ -75,5 +82,59 @@ public class MainMenu {
         String description = scanner.nextLine();
 
         eventController.createEvent(name, address, category, dateTime, description);
+    }
+
+    private void confirmParticipation() {
+        User user = chooseUser();
+        if (user == null) return;
+
+        System.out.print("Event name to join: ");
+        String eventName = scanner.nextLine();
+
+        eventController.confirmParticipation(user, eventName);
+    }
+
+    private void cancelParticipation() {
+        User user = chooseUser();
+        if (user == null) return;
+
+        System.out.print("Event name to leave: ");
+        String eventName = scanner.nextLine();
+
+        eventController.cancelParticipation(user, eventName);
+    }
+
+    private void listUserParticipations() {
+        User user = chooseUser();
+        if (user == null) return;
+
+        eventController.listUserParticipations(user);
+    }
+
+    private User chooseUser() {
+        var users = userController.getUsers();
+        if (users.isEmpty()) {
+            System.out.println("No users registered.");
+            return null;
+        }
+
+        System.out.println("Choose a user by index:");
+        for (int i = 0; i < users.size(); i++) {
+            System.out.println(i + " - " + users.get(i));
+        }
+
+        System.out.print("Enter user index: ");
+        try {
+            int index = Integer.parseInt(scanner.nextLine());
+            if (index >= 0 && index < users.size()) {
+                return users.get(index);
+            } else {
+                System.out.println("Invalid index.");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter a number.");
+        }
+
+        return null;
     }
 }
