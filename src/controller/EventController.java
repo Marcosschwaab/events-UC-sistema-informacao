@@ -2,6 +2,7 @@ package controller;
 
 import model.Event;
 import model.EventCategory;
+import model.User;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,4 +42,46 @@ public class EventController {
     public List<Event> getEvents() {
         return events;
     }
+    public boolean confirmParticipation(User user, String eventName) {
+    for (Event event : events) {
+        if (event.getName().equalsIgnoreCase(eventName)) {
+            if (event.addParticipant(user)) {
+                System.out.println("Participation confirmed.");
+            } else {
+                System.out.println("User is already participating.");
+            }
+            return true;
+        }
+    }
+    System.out.println("Event not found.");
+    return false;
+}
+
+public boolean cancelParticipation(User user, String eventName) {
+    for (Event event : events) {
+        if (event.getName().equalsIgnoreCase(eventName)) {
+            if (event.removeParticipant(user)) {
+                System.out.println("Participation cancelled.");
+            } else {
+                System.out.println("User was not participating.");
+            }
+            return true;
+        }
+    }
+    System.out.println("Event not found.");
+    return false;
+}
+
+public void listUserParticipations(User user) {
+    boolean found = false;
+    for (Event event : events) {
+        if (event.isUserParticipating(user)) {
+            System.out.println(event);
+            found = true;
+        }
+    }
+    if (!found) {
+        System.out.println("User is not participating in any events.");
+    }
+}
 }

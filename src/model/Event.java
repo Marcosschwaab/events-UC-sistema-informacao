@@ -20,6 +20,12 @@ public class Event {
         this.description = description;
         this.participants = new ArrayList<>();
     }
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
+    public String getName() {
+        return name;
+    }
 
     public boolean addParticipant(User user) {
         if (!participants.contains(user)) {
