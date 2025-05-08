@@ -14,7 +14,7 @@ public class EventController {
     private List<Event> events;
 
     public EventController() {
-        this.events = EventFileHandler.loadEvents(); 
+        this.events = EventFileHandler.loadEvents(); // Load from events.data on startup
     }
 
     public void createEvent(String name, String address, EventCategory category, LocalDateTime dateTime, String description) {
@@ -91,6 +91,52 @@ public class EventController {
 
         for (Event event : sorted) {
             System.out.println(event);
+        }
+    }
+
+    public void listPastEvents() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Event> past = events.stream()
+                .filter(e -> e.getDateTime().isBefore(now.minusHours(1)))
+                .sorted(Comparator.comparing(Event::getDateTime))
+                .collect(Collectors.toList());
+
+        if (past.isEmpty()) {
+            System.out.println("No past events.");
+        } else {
+            System.out.println("\n--- Past Events ---");
+            past.forEach(System.out::println);
+        }
+    }
+
+    public void listOngoingEvents() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Event> ongoing = events.stream()
+                .filter(e -> !e.getDateTime().isBefore(now.minusHours(1)) &&
+                             !e.getDateTime().isAfter(now.plusHours(1)))
+                .sorted(Comparator.comparing(Event::getDateTime))
+                .collect(Collectors.toList());
+
+        if (ongoing.isEmpty()) {
+            System.out.println("No events happening now.");
+        } else {
+            System.out.println("\n--- Ongoing Events ---");
+            ongoing.forEach(System.out::println);
+        }
+    }
+
+    public void listUpcomingEvents() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Event> upcoming = events.stream()
+                .filter(e -> e.getDateTime().isAfter(now.plusHours(1)))
+                .sorted(Comparator.comparing(Event::getDateTime))
+                .collect(Collectors.toList());
+
+        if (upcoming.isEmpty()) {
+            System.out.println("No upcoming events.");
+        } else {
+            System.out.println("\n--- Upcoming Events ---");
+            upcoming.forEach(System.out::println);
         }
     }
 
